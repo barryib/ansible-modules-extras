@@ -5,7 +5,7 @@ import os
 
 """
 Ansible module to manage elasticsearch shield users
-(c) 2016, Thierno IB. BARRY <ibrahima.br@gmail.com>
+(c) 2016, Thierno IB. BARRY @barryib
 Sponsored by Polyconseil http://polyconseil.fr.
 
 This file is part of Ansible
@@ -29,7 +29,7 @@ module: elasticsearch_esusers
 short_description: Manage Elasticsearch users in an esusers Realm
 description:
     - Manages Elasticsearch users.
-version_added: "2.1"
+version_added: "2.2"
 author: Thierno IB. BARRY (@barryib)
 options:
     username:
