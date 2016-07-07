@@ -112,10 +112,6 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
-changed:
-    description: whatever something changed by the module
-    returned: success
-    type: string
 username:
     description: the username to be managed
     returned: success
