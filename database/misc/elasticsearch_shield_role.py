@@ -42,14 +42,19 @@ options:
         required: True
     cluster:
         description:
-            - The cluster. (Required when adding a user)
+            - The cluster privileges. (Required when adding a user)
         required: False
         default: None
-    roles:
+    indices:
         description:
-            - Roles to be associated to the user. These are comma separated list of role
+            - Indices privileges. (Required when adding a user)
         required: False
         default: None
+    run_as:
+        description:
+            - Run AS privileges.
+        required: False
+        default: []
     state:
         description:
           - Whether the user should exist.  When C(absent), removes the user
@@ -67,12 +72,6 @@ options:
         required: false
         default: esnative
         choices: [ "esnative", "esusers" ]
-    update_role:
-        description:
-          - C(always) update roles.  C(on_create) will only update for a newly created role
-        required: false
-        default: always
-        choices: [ "always", "on_create" ]
 '''
 
 EXAMPLES = '''
@@ -92,20 +91,20 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
-changed:
-    description: whatever something changed by the module
-    returned: success
-    type: string
 name:
     description: the role name to manage
     returned: success
     type: string
 cluster:
-    description: the cluster on which the role are addedd or removed
+    description: cluster privileges
     returned: success
     type: list
 indices:
-    description: managed indices
+    description: indices privileges
+    returned: success
+    type: list
+run_as:
+    description: run_as privileges
     returned: success
     type: list
 state:
@@ -155,7 +154,6 @@ class ShieldNativeRole(ShieldRoleBase):
                 content = json.loads(info.pop('body', ''))
 
             return True, content[name]
-        
         # role doesn't exist
         elif int(info['status']) == 404:
             return False, None
@@ -193,12 +191,11 @@ def main():
             name=dict(required=True),
             cluster=dict(required=False, type='list'),
             indices=dict(required=False, type='list'),
-            run_as=dict(required=False, default=None, type='list'),
+            run_as=dict(required=False, default=[], type='list'),
             url_username = dict(required=False, default=None, aliases=['admin_user']),
             url_password = dict(required=False, default=None, no_log=True, aliases=['admin_password']),
             state=dict(default='present', choices=['present', 'absent']),
-            elasticsearch_api=dict(default='http://localhost:9200'),
-            update_role=dict(default='always', choices=['always', 'on_create']),
+            elasticsearch_api=dict(default='http://localhost:9200')
         )
     )
 
@@ -208,7 +205,6 @@ def main():
     run_as              = module.params['run_as']
     state               = module.params['state']
     elasticsearch_api   = module.params['elasticsearch_api']
-    update_role         = module.params['update_role']
 
     shield_role = ShieldNativeRole(module, elasticsearch_api)
 
@@ -219,10 +215,11 @@ def main():
             module.fail_json(msg="cluster and indices are required to add role")
 
         if present:
-            if update_role == 'always':
-                changed = shield_role.role_add(name, cluster, indices, run_as)
-            else:
+            dict_cmp = cmp(role, {'cluster': cluster, 'indices': indices, 'run_as': run_as})
+            if dict_cmp == 0:
                 changed = False
+            else:
+                changed = shield_role.role_add(name, cluster, indices, run_as)
         else:
             changed = shield_role.role_add(name, cluster, indices, run_as)
     elif state == 'absent':
