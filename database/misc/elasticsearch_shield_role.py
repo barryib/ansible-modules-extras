@@ -80,8 +80,8 @@ EXAMPLES = '''
     name: my_kibana_user
     cluster: ['monitor']
     indices:
-      - { 'names': '*', 'privileges': ['view_index_metadata', 'read'] }
-      - { 'names': '.kibana*', 'privileges': ['all'] }
+      - { 'names': ['*'], 'privileges': ['view_index_metadata', 'read'] }
+      - { 'names': ['.kibana*'], 'privileges': ['all'] }
     state: present
 
 # Delete a role from your cluster
